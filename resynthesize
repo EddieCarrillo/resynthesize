@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 # Graphite-Grafana installation script for CentOS 8~
 # By @deividgdt
 # Forked from: Jason Dixon <jason@dixongroup.net> -- thanks Jason;)!
@@ -94,14 +94,15 @@ function packagesInstallation() {
 	echo -e "${TAGINFO} Installing some packages..."
 	dnf --quiet groupinstall -y 'Development Tools' 1>> ${SYNTHESIZE_LOG} 2>&1
 	dnf --quiet install -y epel-release 1>> ${SYNTHESIZE_LOG} 2>&1
-	dnf --quiet --enablerepo=PowerTools install -y git wget curl collectd memcached \
+	yum config-manager --set-enabled powertools
+	dnf --quiet install -y git wget curl collectd memcached \
 		automake libtool libffi-devel cairo cairo-devel libffi \
 		python3-devel python3-pip fontconfig httpd python3-mod_wsgi \
 		python3-setuptools openldap-devel collectd-utils collectd-apache \
 		collectd-disk rrdtool-devel 1>> ${SYNTHESIZE_LOG} 2>&1
 	
 	# Just some optionals dependencies needed by graphite-web
-	pip3 install rrdtool python-ldap pyhash 1>> ${SYNTHESIZE_LOG} 2>&1
+	pip3 install rrdtool python-ldap 1>> ${SYNTHESIZE_LOG} 2>&1
 }
 
 # Download source repositories for Graphite/Carbon/Whisper and Statsite
@@ -197,8 +198,8 @@ function confDjango() {
 	sed -i -e "s/UNSAFE_DEFAULT/`date | md5sum | cut -d ' ' -f 1`/" local_settings.py
 
 	# Setup the Django database
-	PYTHONPATH=${GRAPHITE_HOME}/webapp django-admin.py migrate --noinput --settings=graphite.settings --run-syncdb 1>> ${SYNTHESIZE_LOG} 2>&1
-	PYTHONPATH=${GRAPHITE_HOME}/webapp django-admin.py collectstatic --noinput --settings=graphite.settings 1>> ${SYNTHESIZE_LOG} 2>&1
+	PYTHONPATH=${GRAPHITE_HOME}/webapp /usr/local/bin/django-admin.py migrate --noinput --settings=graphite.settings --run-syncdb 1>> ${SYNTHESIZE_LOG} 2>&1
+	PYTHONPATH=${GRAPHITE_HOME}/webapp /usr/local/bin/django-admin.py collectstatic --noinput --settings=graphite.settings 1>> ${SYNTHESIZE_LOG} 2>&1
 
 }
 
